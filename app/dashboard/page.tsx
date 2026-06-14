@@ -2,8 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/lib/auth";
 import Navbar from "@/app/components/navbar";
-import InventoryAlerts from "./alerts";
-import InventoryList from "./inventory-list";
+import InventoryManager from "./inventory-manager";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -25,8 +24,7 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <InventoryAlerts />
-        <InventoryList />
+        <InventoryManager />
       </div>
     </div>
   );

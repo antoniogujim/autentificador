@@ -1,7 +1,6 @@
 import { Package, CreditCard, BookOpen } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
-  SAMPLE_INVENTORY,
   DIAS_AVISO,
   diasRestantes,
   type InventoryItem,
@@ -30,8 +29,12 @@ function mensaje(item: InventoryItem, dias: number): string {
   return `${verbo} en ${dias} día${dias === 1 ? "" : "s"}.`;
 }
 
-export default function InventoryAlerts() {
-  const avisos = SAMPLE_INVENTORY.filter(
+interface InventoryAlertsProps {
+  items: InventoryItem[];
+}
+
+export default function InventoryAlerts({ items }: InventoryAlertsProps) {
+  const avisos = items.filter(
     (item): item is InventoryItem & { fechaLimite: string } =>
       item.fechaLimite !== undefined
   )
@@ -49,7 +52,11 @@ export default function InventoryAlerts() {
       {avisos.map(({ item, dias }) => {
         const Icono = ICONOS[item.categoria];
         return (
-          <Alert key={item.id} variant={dias <= 7 ? "destructive" : "default"}>
+          <Alert
+            key={item.id}
+            variant={dias <= 7 ? "destructive" : "default"}
+            className="transition-shadow hover:bg-primary/10 hover:shadow-md hover:shadow-primary/20"
+          >
             <Icono />
             <AlertTitle>{item.nombre}</AlertTitle>
             <AlertDescription>{mensaje(item, dias)}</AlertDescription>

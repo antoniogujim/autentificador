@@ -59,17 +59,24 @@ cuando algo esté a punto de vencer.
     16), que redirige a `/login?callbackUrl=/dashboard` si no hay sesión.
   - Doble comprobación con `getServerSession()` dentro de la propia
     página (defensa en profundidad).
-  - `Navbar` (Client Component) que muestra avatar, nombre/email del
-    usuario autenticado, el `ThemeToggle` y un botón de **cerrar sesión**
-    funcional (`signOut`).
+  - `Navbar` (Client Component) **fija arriba** (`sticky top-0`) que
+    muestra avatar, nombre/email del usuario autenticado, el
+    `ThemeToggle` y un botón de **cerrar sesión** funcional (`signOut`).
   - **Avisos** (`alerts.tsx`): banners que avisan cuando una garantía o
     suscripción vence en los próximos 30 días (en rojo si quedan ≤7
     días).
-  - **Inventario** (`inventory-list.tsx`): listado agrupado por categoría
-    (Equipos, Suscripciones, Libros y colecciones) con la fecha relevante
-    de cada elemento.
-  - De momento usa datos de ejemplo (`app/lib/inventory.ts`); todavía no
-    hay persistencia ni formulario de alta/edición.
+  - **Inventario** (`inventory-manager.tsx`, `inventory-list.tsx`,
+    `inventory-form.tsx`): alta, edición y borrado de elementos con
+    estado local en cliente. El formulario **se adapta a la categoría**:
+    fecha de garantía/renovación para equipos y suscripciones, o nombre
+    de **colección** para libros (que agrupa los elementos relacionados
+    en la lista). Avisos y lista se recalculan automáticamente al
+    modificar el inventario.
+  - Tarjetas y avisos tienen un pequeño efecto *hover* (tono verde y
+    sombra a juego) para resaltar el elemento bajo el cursor.
+  - De momento todo vive en estado local (`app/lib/inventory.ts` define
+    los tipos y los datos de ejemplo iniciales); la persistencia con
+    Firestore queda para más adelante.
 - Mensajes de error traducidos al español en los formularios de login y
   registro (credenciales inválidas, email ya registrado, contraseña débil,
   etc.).
@@ -103,11 +110,13 @@ app/
 │
 ├── dashboard/
 │   ├── page.tsx                # Área privada (getServerSession + Navbar)
+│   ├── inventory-manager.tsx    # Estado del inventario (alta/edición/borrado)
+│   ├── inventory-form.tsx       # Formulario de alta/edición (según categoría)
 │   ├── alerts.tsx               # Avisos de garantías/suscripciones próximas a vencer
-│   └── inventory-list.tsx       # Listado del inventario agrupado por categoría
+│   └── inventory-list.tsx       # Listado del inventario agrupado por categoría/colección
 │
 └── components/
-    ├── navbar.tsx               # Navbar (Client Component) con sesión, logout y ThemeToggle
+    ├── navbar.tsx               # Navbar (Client Component, sticky) con sesión, logout y ThemeToggle
     ├── theme-provider.tsx       # Wrapper de next-themes
     └── theme-toggle.tsx         # Botón para alternar modo claro/oscuro
 

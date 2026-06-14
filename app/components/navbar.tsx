@@ -15,7 +15,7 @@ export default function Navbar() {
     "?";
 
   return (
-    <nav className="flex items-center justify-between border-b border-border bg-background px-6 py-3">
+    <nav className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-6 py-3">
       <span className="text-lg font-semibold tracking-tight">
         Autentificador
       </span>

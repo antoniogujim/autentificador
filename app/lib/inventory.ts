@@ -7,6 +7,8 @@ export interface InventoryItem {
   /** Fecha límite en formato ISO (YYYY-MM-DD): vencimiento de garantía o próxima renovación */
   fechaLimite?: string;
   notas?: string;
+  /** Nombre del grupo/colección al que pertenece (p.ej. una saga de libros) */
+  coleccion?: string;
 }
 
 /** Número de días de antelación con los que se muestra un aviso */
@@ -61,6 +63,18 @@ export const SAMPLE_INVENTORY: InventoryItem[] = [
   {
     id: "5",
     nombre: "Clean Code - Robert C. Martin",
+    categoria: "libro",
+    coleccion: "Programación",
+  },
+  {
+    id: "6",
+    nombre: "Refactoring - Martin Fowler",
+    categoria: "libro",
+    coleccion: "Programación",
+  },
+  {
+    id: "7",
+    nombre: "El nombre del viento - Patrick Rothfuss",
     categoria: "libro",
   },
 ];
