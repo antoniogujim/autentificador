@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/lib/auth";
 import Navbar from "@/app/components/navbar";
 import InventoryManager from "./inventory-manager";
+import { getInventoryItems } from "./actions";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -10,6 +11,8 @@ export default async function DashboardPage() {
   if (!session) {
     redirect("/login");
   }
+
+  const items = await getInventoryItems();
 
   return (
     <div className="flex flex-1 flex-col">
@@ -24,7 +27,7 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <InventoryManager />
+        <InventoryManager initialItems={items} />
       </div>
     </div>
   );

@@ -27,7 +27,9 @@ cuando algo esté a punto de vencer.
 - [React 19](https://react.dev/)
 - [NextAuth.js v4](https://next-auth.js.org/) (`next-auth@4`)
 - [Firebase](https://firebase.google.com/) — Authentication (Email/Password
-  y Google) vía SDK cliente y API REST de Identity Toolkit
+  y Google) vía SDK cliente y API REST de Identity Toolkit, y **Firestore**
+  como base de datos del inventario, accedida desde el servidor con el
+  **Admin SDK** (`firebase-admin`)
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/) (estilo `base-nova`, primitivas
   [`@base-ui/react`](https://base-ui.com/))
@@ -66,17 +68,23 @@ cuando algo esté a punto de vencer.
     suscripción vence en los próximos 30 días (en rojo si quedan ≤7
     días).
   - **Inventario** (`inventory-manager.tsx`, `inventory-list.tsx`,
-    `inventory-form.tsx`): alta, edición y borrado de elementos con
-    estado local en cliente. El formulario **se adapta a la categoría**:
-    fecha de garantía/renovación para equipos y suscripciones, o nombre
-    de **colección** para libros (que agrupa los elementos relacionados
-    en la lista). Avisos y lista se recalculan automáticamente al
-    modificar el inventario.
+    `inventory-form.tsx`): alta, edición y borrado de elementos. El
+    formulario **se adapta a la categoría**: fecha de garantía/renovación
+    para equipos y suscripciones, o nombre de **colección** para libros
+    (que agrupa los elementos relacionados en la lista). Avisos y lista
+    se recalculan automáticamente al modificar el inventario.
   - Tarjetas y avisos tienen un pequeño efecto *hover* (tono verde y
     sombra a juego) para resaltar el elemento bajo el cursor.
-  - De momento todo vive en estado local (`app/lib/inventory.ts` define
-    los tipos y los datos de ejemplo iniciales); la persistencia con
-    Firestore queda para más adelante.
+  - **Persistencia real con Firestore** (`dashboard/actions.ts`, Server
+    Actions): cada usuario tiene su propia colección
+    `users/{id}/inventory`, donde `id` es el identificador estable que
+    NextAuth añade a la sesión (GitHub id o uid de Firebase Auth, según
+    el método de login). El acceso se hace desde el servidor con el
+    **Firebase Admin SDK** (`lib/firebase-admin.ts`), evitando depender
+    de las reglas de seguridad de Firestore basadas en `request.auth`
+    (que no existen para el login con GitHub). La primera vez que un
+    usuario entra, su inventario se rellena con los datos de ejemplo de
+    `app/lib/inventory.ts`.
 - Mensajes de error traducidos al español en los formularios de login y
   registro (credenciales inválidas, email ya registrado, contraseña débil,
   etc.).
@@ -94,8 +102,9 @@ app/
 │   └── route.ts                # Handler de NextAuth (GET/POST)
 │
 ├── lib/
-│   ├── auth.ts                 # authOptions: providers (GitHub, Credentials, Firebase Google)
+│   ├── auth.ts                 # authOptions: providers + callbacks (id de sesión)
 │   ├── firebase.ts             # Inicialización del SDK cliente de Firebase
+│   ├── firebase-admin.ts       # Inicialización del SDK admin (Firestore en servidor)
 │   └── inventory.ts             # Tipos y datos de ejemplo del inventario personal
 │
 ├── login/
@@ -110,6 +119,7 @@ app/
 │
 ├── dashboard/
 │   ├── page.tsx                # Área privada (getServerSession + Navbar)
+│   ├── actions.ts               # Server Actions: CRUD del inventario en Firestore
 │   ├── inventory-manager.tsx    # Estado del inventario (alta/edición/borrado)
 │   ├── inventory-form.tsx       # Formulario de alta/edición (según categoría)
 │   ├── alerts.tsx               # Avisos de garantías/suscripciones próximas a vencer
@@ -122,6 +132,7 @@ app/
 
 components/ui/                  # Componentes shadcn (Button, Card, Input, Label, Alert, Avatar)
 lib/utils.ts                    # Helper cn() de shadcn
+types/next-auth.d.ts            # Tipos: añade `id` a Session.user y al JWT
 
 proxy.ts                         # Middleware (Next.js 16) que protege /dashboard
 
@@ -141,6 +152,11 @@ docs/seguridad/
   - El proveedor **Google** habilitado en
     *Authentication → Sign-in method*.
   - Una app web registrada (para obtener el `firebaseConfig`).
+  - **Firestore Database** creada (modo nativo) en
+    *Build → Firestore Database → Create database*.
+  - Una **cuenta de servicio** para el SDK de administración: en
+    *Project settings → Service accounts → Generate new private key*
+    (descarga un JSON con `client_email` y `private_key`).
 
 ## Variables de entorno
 
@@ -162,13 +178,22 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Firebase Admin SDK (cuenta de servicio, solo servidor)
+# Project settings > Service accounts > Generate new private key
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
 
 > `.env.local` está en `.gitignore` y nunca debe subirse al repositorio.
 > La `NEXT_PUBLIC_FIREBASE_API_KEY` no es secreta (está diseñada para
-> exponerse al cliente), pero `GITHUB_SECRET` y `NEXTAUTH_SECRET` sí lo son
-> — la seguridad real de Firebase recae en las reglas de seguridad y en las
+> exponerse al cliente), pero `GITHUB_SECRET`, `NEXTAUTH_SECRET`,
+> `FIREBASE_CLIENT_EMAIL` y `FIREBASE_PRIVATE_KEY` sí lo son — la
+> seguridad real de Firebase recae en las reglas de seguridad y en las
 > restricciones de la API key en Google Cloud Console.
+>
+> `FIREBASE_PRIVATE_KEY` viene del JSON de la cuenta de servicio: copia el
+> valor de `private_key` tal cual (con los `\n`) entre comillas dobles.
 
 Para la OAuth App de GitHub, configura como **Authorization callback URL**:
 

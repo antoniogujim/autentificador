@@ -1,31 +1,52 @@
 "use client";
 
 import { useState } from "react";
-import { SAMPLE_INVENTORY, type InventoryItem } from "@/app/lib/inventory";
+import { type InventoryItem } from "@/app/lib/inventory";
+import {
+  addInventoryItem,
+  deleteInventoryItem,
+  updateInventoryItem,
+} from "./actions";
 import InventoryAlerts from "./alerts";
 import InventoryForm from "./inventory-form";
 import InventoryList from "./inventory-list";
 
-export default function InventoryManager() {
-  const [items, setItems] = useState<InventoryItem[]>(SAMPLE_INVENTORY);
+interface InventoryManagerProps {
+  initialItems: InventoryItem[];
+}
+
+export default function InventoryManager({
+  initialItems,
+}: InventoryManagerProps) {
+  const [items, setItems] = useState<InventoryItem[]>(initialItems);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
-  function handleSave(item: InventoryItem) {
-    setItems((prev) => {
-      const existe = prev.some((i) => i.id === item.id);
-      if (existe) {
-        return prev.map((i) => (i.id === item.id ? item : i));
-      }
-      return [...prev, item];
-    });
+  async function handleSave(item: InventoryItem) {
+    const esNuevo = !items.some((i) => i.id === item.id);
     setEditingItem(null);
+
+    if (esNuevo) {
+      const { nombre, categoria, fechaLimite, notas, coleccion } = item;
+      const creado = await addInventoryItem({
+        nombre,
+        categoria,
+        fechaLimite,
+        notas,
+        coleccion,
+      });
+      setItems((prev) => [...prev, creado]);
+    } else {
+      setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
+      await updateInventoryItem(item);
+    }
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     setItems((prev) => prev.filter((i) => i.id !== id));
     if (editingItem?.id === id) {
       setEditingItem(null);
     }
+    await deleteInventoryItem(id);
   }
 
   return (
