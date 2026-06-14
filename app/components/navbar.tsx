@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/app/components/theme-toggle";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -37,6 +38,7 @@ export default function Navbar() {
         >
           Cerrar sesión
         </Button>
+        <ThemeToggle />
       </div>
     </nav>
   );

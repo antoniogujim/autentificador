@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import ThemeToggle from "@/app/components/theme-toggle";
 import CredentialsForm from "./credentials-form";
 import LoginButtons from "./login-buttons";
 import GoogleButton from "./google-button";
@@ -21,7 +22,10 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-50 px-6 dark:bg-black">
+    <div className="relative flex flex-1 items-center justify-center bg-background px-6">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-2xl">Bienvenido</CardTitle>

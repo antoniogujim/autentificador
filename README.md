@@ -14,6 +14,12 @@ distintos flujos de autenticación (Authorization Code de OAuth, login con
 credenciales propias, login social vía Firebase) y de las decisiones de
 seguridad que hay detrás de cada uno — documentadas en [`docs/seguridad/`](#documentación-de-seguridad).
 
+Sobre esa base de autenticación se está construyendo una aplicación de
+ejemplo: un **gestor de inventario personal**, donde cada usuario podrá
+guardar sus equipos (con fecha de garantía), suscripciones (con fecha de
+renovación) y colecciones (libros, etc.), y recibir avisos en el dashboard
+cuando algo esté a punto de vencer.
+
 ## Stack técnico
 
 - [Next.js 16](https://nextjs.org/) (App Router, `proxy.ts` como reemplazo
@@ -25,11 +31,16 @@ seguridad que hay detrás de cada uno — documentadas en [`docs/seguridad/`](#d
 - [Tailwind CSS v4](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/) (estilo `base-nova`, primitivas
   [`@base-ui/react`](https://base-ui.com/))
+- [next-themes](https://github.com/pacocoursey/next-themes) — modo
+  claro/oscuro
 - TypeScript
 
 ## Funcionalidades
 
-- **Landing pública** (`/`) con enlace a login.
+- **Landing pública** (`/`): carta de presentación de la app, con una
+  breve descripción del gestor de inventario personal, botones de
+  "Iniciar sesión" / "Crear cuenta" y tarjetas con las funciones
+  principales (Equipos, Suscripciones, Colecciones, Avisos).
 - **Login personalizado** (`/login`) con tres métodos:
   - Email/contraseña (`CredentialsProvider` → Firebase Identity Toolkit
     `signInWithPassword`).
@@ -39,14 +50,26 @@ seguridad que hay detrás de cada uno — documentadas en [`docs/seguridad/`](#d
 - **Registro** (`/register`) con email/contraseña usando
   `createUserWithEmailAndPassword` del SDK cliente de Firebase, con login
   automático tras registrarse.
+- **Modo claro/oscuro**: toggle (`ThemeToggle`) presente en todas las
+  páginas, gestionado con `next-themes` (clase `.dark` en `<html>`,
+  persistido y respetando el tema del sistema por defecto). Transición de
+  color unificada de 300ms en toda la app al cambiar de tema.
 - **Dashboard privado** (`/dashboard`):
   - Protegido a nivel de servidor por `proxy.ts` (middleware de Next.js
     16), que redirige a `/login?callbackUrl=/dashboard` si no hay sesión.
   - Doble comprobación con `getServerSession()` dentro de la propia
     página (defensa en profundidad).
   - `Navbar` (Client Component) que muestra avatar, nombre/email del
-    usuario autenticado y botón de **cerrar sesión** funcional
-    (`signOut`).
+    usuario autenticado, el `ThemeToggle` y un botón de **cerrar sesión**
+    funcional (`signOut`).
+  - **Avisos** (`alerts.tsx`): banners que avisan cuando una garantía o
+    suscripción vence en los próximos 30 días (en rojo si quedan ≤7
+    días).
+  - **Inventario** (`inventory-list.tsx`): listado agrupado por categoría
+    (Equipos, Suscripciones, Libros y colecciones) con la fecha relevante
+    de cada elemento.
+  - De momento usa datos de ejemplo (`app/lib/inventory.ts`); todavía no
+    hay persistencia ni formulario de alta/edición.
 - Mensajes de error traducidos al español en los formularios de login y
   registro (credenciales inválidas, email ya registrado, contraseña débil,
   etc.).
@@ -55,17 +78,18 @@ seguridad que hay detrás de cada uno — documentadas en [`docs/seguridad/`](#d
 
 ```
 app/
-├── page.tsx                    # Landing pública
+├── page.tsx                    # Landing pública (carta de presentación)
 ├── layout.tsx                  # Layout raíz, envuelve la app en <Providers>
-├── providers.tsx               # <SessionProvider> de next-auth/react
-├── globals.css                 # Tema y variables de shadcn/Tailwind
+├── providers.tsx               # <SessionProvider> + <ThemeProvider>
+├── globals.css                 # Tema, paleta de colores y variables de shadcn/Tailwind
 │
 ├── api/auth/[...nextauth]/
 │   └── route.ts                # Handler de NextAuth (GET/POST)
 │
 ├── lib/
 │   ├── auth.ts                 # authOptions: providers (GitHub, Credentials, Firebase Google)
-│   └── firebase.ts             # Inicialización del SDK cliente de Firebase
+│   ├── firebase.ts             # Inicialización del SDK cliente de Firebase
+│   └── inventory.ts             # Tipos y datos de ejemplo del inventario personal
 │
 ├── login/
 │   ├── page.tsx                # Página de login (Server Component)
@@ -78,10 +102,14 @@ app/
 │   └── register-form.tsx       # Formulario de registro (Firebase Auth)
 │
 ├── dashboard/
-│   └── page.tsx                # Área privada (getServerSession + Navbar)
+│   ├── page.tsx                # Área privada (getServerSession + Navbar)
+│   ├── alerts.tsx               # Avisos de garantías/suscripciones próximas a vencer
+│   └── inventory-list.tsx       # Listado del inventario agrupado por categoría
 │
 └── components/
-    └── navbar.tsx               # Navbar (Client Component) con sesión y logout
+    ├── navbar.tsx               # Navbar (Client Component) con sesión, logout y ThemeToggle
+    ├── theme-provider.tsx       # Wrapper de next-themes
+    └── theme-toggle.tsx         # Botón para alternar modo claro/oscuro
 
 components/ui/                  # Componentes shadcn (Button, Card, Input, Label, Alert, Avatar)
 lib/utils.ts                    # Helper cn() de shadcn
