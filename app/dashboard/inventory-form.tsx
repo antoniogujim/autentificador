@@ -23,12 +23,14 @@ const selectClassName =
 
 interface InventoryFormProps {
   editingItem: InventoryItem | null;
+  saving: boolean;
   onSave: (item: InventoryItem) => void;
   onCancel: () => void;
 }
 
 export default function InventoryForm({
   editingItem,
+  saving,
   onSave,
   onCancel,
 }: InventoryFormProps) {
@@ -36,6 +38,7 @@ export default function InventoryForm({
   const [categoria, setCategoria] = useState<InventoryCategory>(
     editingItem?.categoria ?? "equipo"
   );
+  const [nombreError, setNombreError] = useState<string | null>(null);
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,8 +47,10 @@ export default function InventoryForm({
 
     const nombre = String(data.get("nombre") ?? "").trim();
     if (!nombre) {
+      setNombreError("El nombre no puede estar vacío.");
       return;
     }
+    setNombreError(null);
 
     const fechaLimite = String(data.get("fechaLimite") ?? "");
     const notas = String(data.get("notas") ?? "").trim();
@@ -81,8 +86,17 @@ export default function InventoryForm({
             id={`${id}-nombre`}
             name="nombre"
             defaultValue={editingItem?.nombre}
+            maxLength={100}
             required
+            aria-invalid={!!nombreError}
+            aria-describedby={nombreError ? `${id}-nombre-error` : undefined}
+            onChange={() => nombreError && setNombreError(null)}
           />
+          {nombreError && (
+            <p id={`${id}-nombre-error`} className="text-sm text-destructive">
+              {nombreError}
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-categoria`}>Categoría</Label>
@@ -110,6 +124,7 @@ export default function InventoryForm({
               name="coleccion"
               placeholder="p.ej. una saga, un autor, un género..."
               defaultValue={editingItem?.coleccion}
+              maxLength={100}
             />
           </div>
         ) : (
@@ -130,15 +145,25 @@ export default function InventoryForm({
             id={`${id}-notas`}
             name="notas"
             defaultValue={editingItem?.notas}
+            maxLength={500}
           />
         </div>
       </div>
       <div className="flex gap-2">
-        <Button type="submit">
-          {editingItem ? "Guardar cambios" : "Añadir"}
+        <Button type="submit" disabled={saving}>
+          {saving
+            ? "Guardando..."
+            : editingItem
+              ? "Guardar cambios"
+              : "Añadir"}
         </Button>
         {editingItem && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={saving}
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
         )}

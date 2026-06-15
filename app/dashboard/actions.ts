@@ -13,8 +13,12 @@ async function requireUserId(): Promise<string> {
   return session.user.id;
 }
 
+function userDoc(userId: string) {
+  return adminDb.collection("users").doc(userId);
+}
+
 function inventoryCollection(userId: string) {
-  return adminDb.collection("users").doc(userId).collection("inventory");
+  return userDoc(userId).collection("inventory");
 }
 
 export async function getInventoryItems(): Promise<InventoryItem[]> {
@@ -53,4 +57,20 @@ export async function updateInventoryItem(item: InventoryItem): Promise<void> {
 export async function deleteInventoryItem(id: string): Promise<void> {
   const userId = await requireUserId();
   await inventoryCollection(userId).doc(id).delete();
+}
+
+export async function getDisplayName(): Promise<string | null> {
+  const userId = await requireUserId();
+  const snapshot = await userDoc(userId).get();
+  const displayName = snapshot.data()?.displayName;
+  return typeof displayName === "string" ? displayName : null;
+}
+
+export async function updateDisplayName(name: string): Promise<void> {
+  const userId = await requireUserId();
+  const trimmed = name.trim().slice(0, 50);
+  if (!trimmed) {
+    throw new Error("El nombre no puede estar vacío");
+  }
+  await userDoc(userId).set({ displayName: trimmed }, { merge: true });
 }

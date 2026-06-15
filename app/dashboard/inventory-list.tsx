@@ -1,4 +1,11 @@
-import { Package, CreditCard, BookOpen, Pencil, Trash2 } from "lucide-react";
+import {
+  Package,
+  CreditCard,
+  BookOpen,
+  Pencil,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -7,6 +14,17 @@ import {
   CardAction,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import {
   type InventoryCategory,
   type InventoryItem,
@@ -61,12 +79,14 @@ function agruparPorColeccion(
 
 interface InventoryListProps {
   items: InventoryItem[];
+  deletingId: string | null;
   onEdit: (item: InventoryItem) => void;
   onDelete: (id: string) => void;
 }
 
 export default function InventoryList({
   items,
+  deletingId,
   onEdit,
   onDelete,
 }: InventoryListProps) {
@@ -80,6 +100,7 @@ export default function InventoryList({
 
   function renderCard(item: InventoryItem) {
     const desc = descripcion(item);
+    const eliminando = item.id === deletingId;
     return (
       <Card
         key={item.id}
@@ -93,18 +114,48 @@ export default function InventoryList({
               size="icon-sm"
               variant="ghost"
               aria-label="Editar"
+              disabled={eliminando}
               onClick={() => onEdit(item)}
             >
               <Pencil />
             </Button>
-            <Button
-              size="icon-sm"
-              variant="ghost"
-              aria-label="Eliminar"
-              onClick={() => onDelete(item.id)}
-            >
-              <Trash2 />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label="Eliminar"
+                    disabled={eliminando}
+                  />
+                }
+              >
+                {eliminando ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Trash2 />
+                )}
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    ¿Eliminar &quot;{item.nombre}&quot;?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={() => onDelete(item.id)}
+                  >
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardAction>
         </CardHeader>
       </Card>

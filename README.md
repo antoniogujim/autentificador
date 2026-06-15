@@ -73,6 +73,17 @@ cuando algo esté a punto de vencer.
     para equipos y suscripciones, o nombre de **colección** para libros
     (que agrupa los elementos relacionados en la lista). Avisos y lista
     se recalculan automáticamente al modificar el inventario.
+  - **Validación del formulario**: el nombre es obligatorio (muestra un
+    aviso si se deja vacío o solo con espacios) y los campos de texto
+    tienen un límite de longitud razonable.
+  - **Borrado con confirmación**: eliminar un elemento abre un diálogo
+    (`AlertDialog`) que pide confirmación antes de borrar definitivamente.
+  - **Estados de carga**: mientras se guarda o elimina un elemento, los
+    botones correspondientes se deshabilitan (y el de borrar muestra un
+    spinner) para evitar acciones duplicadas.
+  - **Manejo de errores**: si una operación contra Firestore falla, se
+    revierte el cambio optimista en la interfaz y se muestra un aviso con
+    opción de cerrarlo.
   - Tarjetas y avisos tienen un pequeño efecto *hover* (tono verde y
     sombra a juego) para resaltar el elemento bajo el cursor.
   - **Persistencia real con Firestore** (`dashboard/actions.ts`, Server
@@ -130,7 +141,7 @@ app/
     ├── theme-provider.tsx       # Wrapper de next-themes
     └── theme-toggle.tsx         # Botón para alternar modo claro/oscuro
 
-components/ui/                  # Componentes shadcn (Button, Card, Input, Label, Alert, Avatar)
+components/ui/                  # Componentes shadcn (Button, Card, Input, Label, Alert, AlertDialog, Avatar)
 lib/utils.ts                    # Helper cn() de shadcn
 types/next-auth.d.ts            # Tipos: añade `id` a Session.user y al JWT
 
