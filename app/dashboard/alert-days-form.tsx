@@ -5,15 +5,13 @@ import { useRouter } from "next/navigation";
 import { Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateDisplayName } from "./actions";
+import { updateAlertDays } from "./actions";
 
-interface DisplayNameFormProps {
-  initialName: string;
+interface AlertDaysFormProps {
+  initialDays: number;
 }
 
-export default function DisplayNameForm({
-  initialName,
-}: DisplayNameFormProps) {
+export default function AlertDaysForm({ initialDays }: AlertDaysFormProps) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,13 +21,13 @@ export default function DisplayNameForm({
     return (
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-foreground">
-          {initialName}
+          {initialDays} día{initialDays === 1 ? "" : "s"}
         </span>
         <Button
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="Editar nombre"
+          aria-label="Editar días de aviso"
           onClick={() => setEditing(true)}
         >
           <Pencil />
@@ -40,23 +38,23 @@ export default function DisplayNameForm({
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nombre = String(
-      new FormData(event.currentTarget).get("displayName") ?? ""
-    ).trim();
+    const value = Number(
+      new FormData(event.currentTarget).get("alertDays") ?? ""
+    );
 
-    if (!nombre) {
-      setError("El nombre no puede estar vacío.");
+    if (!Number.isInteger(value) || value < 1 || value > 365) {
+      setError("Introduce un número entre 1 y 365.");
       return;
     }
     setError(null);
 
     startTransition(async () => {
       try {
-        await updateDisplayName(nombre);
+        await updateAlertDays(value);
         setEditing(false);
         router.refresh();
       } catch {
-        setError("No se ha podido guardar el nombre.");
+        setError("No se ha podido guardar el valor.");
       }
     });
   }
@@ -64,20 +62,22 @@ export default function DisplayNameForm({
   return (
     <form onSubmit={handleSubmit} className="flex items-center gap-1.5">
       <Input
-        name="displayName"
-        defaultValue={initialName}
-        maxLength={50}
+        type="number"
+        name="alertDays"
+        defaultValue={initialDays}
+        min={1}
+        max={365}
         autoFocus
         disabled={pending}
-        className="h-8 w-48"
-        aria-label="Nombre"
+        className="h-8 w-24"
+        aria-label="Días de aviso"
         aria-invalid={!!error}
       />
       <Button
         type="submit"
         size="icon-sm"
         variant="ghost"
-        aria-label="Guardar nombre"
+        aria-label="Guardar"
         disabled={pending}
       >
         <Check />

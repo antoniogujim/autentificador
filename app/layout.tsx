@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Autentificador",
-  description: "Demo de autenticación con NextAuth.js",
+  title: "Inventario Personal",
+  description: "Gestor de inventario personal con NextAuth.js y Firebase",
 };
 
 export default function RootLayout({

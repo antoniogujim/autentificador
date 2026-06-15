@@ -1,4 +1,4 @@
-# Autentificador
+# Inventario Personal
 
 Demo educativa de autenticación construida con **Next.js 16 (App Router)** y
 **NextAuth.js v4**, que combina dos enfoques distintos en una misma
@@ -62,11 +62,12 @@ cuando algo esté a punto de vencer.
   - Doble comprobación con `getServerSession()` dentro de la propia
     página (defensa en profundidad).
   - `Navbar` (Client Component) **fija arriba** (`sticky top-0`) que
-    muestra avatar, nombre/email del usuario autenticado, el
-    `ThemeToggle` y un botón de **cerrar sesión** funcional (`signOut`).
+    muestra avatar, el nombre visible del usuario, un acceso directo a
+    **Configuración** (icono de engranaje), el `ThemeToggle` y un botón
+    de **cerrar sesión** funcional (`signOut`).
   - **Avisos** (`alerts.tsx`): banners que avisan cuando una garantía o
-    suscripción vence en los próximos 30 días (en rojo si quedan ≤7
-    días).
+    suscripción está próxima a vencer, con un umbral de días configurable
+    por el usuario (por defecto 30, en rojo si quedan ≤7 días).
   - **Inventario** (`inventory-manager.tsx`, `inventory-list.tsx`,
     `inventory-form.tsx`): alta, edición y borrado de elementos. El
     formulario **se adapta a la categoría**: fecha de garantía/renovación
@@ -87,7 +88,8 @@ cuando algo esté a punto de vencer.
   - Tarjetas y avisos tienen un pequeño efecto *hover* (tono verde y
     sombra a juego) para resaltar el elemento bajo el cursor.
   - **Persistencia real con Firestore** (`dashboard/actions.ts`, Server
-    Actions): cada usuario tiene su propia colección
+    Actions): cada usuario tiene un documento `users/{id}` (con sus
+    preferencias: `displayName`, `alertDays`, `seeded`) y una colección
     `users/{id}/inventory`, donde `id` es el identificador estable que
     NextAuth añade a la sesión (GitHub id o uid de Firebase Auth, según
     el método de login). El acceso se hace desde el servidor con el
@@ -95,7 +97,23 @@ cuando algo esté a punto de vencer.
     de las reglas de seguridad de Firestore basadas en `request.auth`
     (que no existen para el login con GitHub). La primera vez que un
     usuario entra, su inventario se rellena con los datos de ejemplo de
-    `app/lib/inventory.ts`.
+    `app/lib/inventory.ts` (controlado por el flag `seeded`, para que no
+    se vuelvan a añadir tras vaciar el inventario).
+  - **Página de configuración** (`/dashboard/configuracion`), accesible
+    desde el icono de engranaje del `Navbar`:
+    - **Nombre visible**: edita el nombre que se muestra en el dashboard
+      y en la barra superior (`displayName`), con fallback al
+      nombre/email de la cuenta si no se ha configurado ninguno.
+    - **Cuenta**: muestra el correo electrónico y el método de inicio de
+      sesión (GitHub, Google o email/contraseña).
+    - **Avisos**: número de días de antelación con los que se muestran
+      los avisos de vencimiento (`alertDays`, entre 1 y 365, 30 por
+      defecto).
+    - **Copia de seguridad**: descarga el inventario como JSON, o
+      importa elementos desde un archivo exportado previamente
+      (se añaden al inventario existente, validando su formato).
+    - **Vaciar inventario**: elimina todos los elementos del inventario
+      (con confirmación mediante `AlertDialog`).
 - Mensajes de error traducidos al español en los formularios de login y
   registro (credenciales inválidas, email ya registrado, contraseña débil,
   etc.).
@@ -113,10 +131,10 @@ app/
 │   └── route.ts                # Handler de NextAuth (GET/POST)
 │
 ├── lib/
-│   ├── auth.ts                 # authOptions: providers + callbacks (id de sesión)
+│   ├── auth.ts                 # authOptions: providers + callbacks (id y provider de sesión)
 │   ├── firebase.ts             # Inicialización del SDK cliente de Firebase
 │   ├── firebase-admin.ts       # Inicialización del SDK admin (Firestore en servidor)
-│   └── inventory.ts             # Tipos y datos de ejemplo del inventario personal
+│   └── inventory.ts             # Tipos, validación y datos de ejemplo del inventario personal
 │
 ├── login/
 │   ├── page.tsx                # Página de login (Server Component)
@@ -130,11 +148,18 @@ app/
 │
 ├── dashboard/
 │   ├── page.tsx                # Área privada (getServerSession + Navbar)
-│   ├── actions.ts               # Server Actions: CRUD del inventario en Firestore
+│   ├── actions.ts               # Server Actions: CRUD del inventario y preferencias en Firestore
 │   ├── inventory-manager.tsx    # Estado del inventario (alta/edición/borrado)
 │   ├── inventory-form.tsx       # Formulario de alta/edición (según categoría)
 │   ├── alerts.tsx               # Avisos de garantías/suscripciones próximas a vencer
-│   └── inventory-list.tsx       # Listado del inventario agrupado por categoría/colección
+│   ├── inventory-list.tsx       # Listado del inventario agrupado por categoría/colección
+│   ├── display-name-form.tsx    # Editor del nombre visible (displayName)
+│   ├── alert-days-form.tsx      # Editor de los días de antelación de los avisos
+│   ├── export-inventory-button.tsx  # Descarga el inventario como JSON
+│   ├── import-inventory-button.tsx  # Importa elementos del inventario desde un JSON
+│   ├── clear-inventory-button.tsx   # Vacía el inventario (con confirmación)
+│   └── configuracion/
+│       └── page.tsx             # Página de configuración (/dashboard/configuracion)
 │
 └── components/
     ├── navbar.tsx               # Navbar (Client Component, sticky) con sesión, logout y ThemeToggle
@@ -143,7 +168,7 @@ app/
 
 components/ui/                  # Componentes shadcn (Button, Card, Input, Label, Alert, AlertDialog, Avatar)
 lib/utils.ts                    # Helper cn() de shadcn
-types/next-auth.d.ts            # Tipos: añade `id` a Session.user y al JWT
+types/next-auth.d.ts            # Tipos: añade `id` y `provider` a Session.user y al JWT
 
 proxy.ts                         # Middleware (Next.js 16) que protege /dashboard
 

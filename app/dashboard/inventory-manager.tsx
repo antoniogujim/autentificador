@@ -21,10 +21,12 @@ const ERROR_ELIMINAR =
 
 interface InventoryManagerProps {
   initialItems: InventoryItem[];
+  diasAviso: number;
 }
 
 export default function InventoryManager({
   initialItems,
+  diasAviso,
 }: InventoryManagerProps) {
   const [items, setItems] = useState<InventoryItem[]>(initialItems);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
@@ -112,7 +114,7 @@ export default function InventoryManager({
           </AlertAction>
         </Alert>
       )}
-      <InventoryAlerts items={items} />
+      <InventoryAlerts items={items} diasAviso={diasAviso} />
       <InventoryForm
         key={editingItem?.id ?? "new"}
         editingItem={editingItem}

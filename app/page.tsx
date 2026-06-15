@@ -45,7 +45,7 @@ export default function Home() {
 
       <div className="flex flex-col items-center gap-6">
         <h1 className="text-4xl font-semibold tracking-tight text-foreground">
-          Autentificador
+          Inventario Personal
         </h1>
         <p className="max-w-md text-lg text-muted-foreground">
           Tu inventario personal: equipos, suscripciones y colecciones en un

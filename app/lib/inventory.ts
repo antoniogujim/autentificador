@@ -11,6 +11,26 @@ export interface InventoryItem {
   coleccion?: string;
 }
 
+export type InventoryItemInput = Omit<InventoryItem, "id">;
+
+const CATEGORIAS: InventoryCategory[] = ["equipo", "suscripcion", "libro"];
+
+/** Comprueba que un valor leído de un JSON importado tiene la forma de un InventoryItemInput */
+export function isInventoryItemInput(value: unknown): value is InventoryItemInput {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+
+  if (typeof item.nombre !== "string" || !item.nombre.trim()) return false;
+  if (!CATEGORIAS.includes(item.categoria as InventoryCategory)) return false;
+  if (item.fechaLimite !== undefined && typeof item.fechaLimite !== "string")
+    return false;
+  if (item.notas !== undefined && typeof item.notas !== "string") return false;
+  if (item.coleccion !== undefined && typeof item.coleccion !== "string")
+    return false;
+
+  return true;
+}
+
 /** Número de días de antelación con los que se muestra un aviso */
 export const DIAS_AVISO = 30;
 

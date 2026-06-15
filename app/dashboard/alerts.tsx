@@ -1,7 +1,6 @@
 import { Package, CreditCard, BookOpen } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
-  DIAS_AVISO,
   diasRestantes,
   type InventoryItem,
   type InventoryCategory,
@@ -31,15 +30,19 @@ function mensaje(item: InventoryItem, dias: number): string {
 
 interface InventoryAlertsProps {
   items: InventoryItem[];
+  diasAviso: number;
 }
 
-export default function InventoryAlerts({ items }: InventoryAlertsProps) {
+export default function InventoryAlerts({
+  items,
+  diasAviso,
+}: InventoryAlertsProps) {
   const avisos = items.filter(
     (item): item is InventoryItem & { fechaLimite: string } =>
       item.fechaLimite !== undefined
   )
     .map((item) => ({ item, dias: diasRestantes(item.fechaLimite) }))
-    .filter(({ dias }) => dias <= DIAS_AVISO)
+    .filter(({ dias }) => dias <= diasAviso)
     .sort((a, b) => a.dias - b.dias);
 
   if (avisos.length === 0) {
