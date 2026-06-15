@@ -117,6 +117,9 @@ cuando algo esté a punto de vencer.
 - Mensajes de error traducidos al español en los formularios de login y
   registro (credenciales inválidas, email ya registrado, contraseña débil,
   etc.).
+- **Favicon e icono personalizados** (`icon.tsx`, `apple-icon.tsx`):
+  generados con `next/og` (`ImageResponse`), con el color verde primario de
+  la app y una "I" de "Inventario".
 
 ## Estructura del proyecto
 
@@ -126,6 +129,8 @@ app/
 ├── layout.tsx                  # Layout raíz, envuelve la app en <Providers>
 ├── providers.tsx               # <SessionProvider> + <ThemeProvider>
 ├── globals.css                 # Tema, paleta de colores y variables de shadcn/Tailwind
+├── icon.tsx                     # Favicon generado (fondo verde + "I" de Inventario)
+├── apple-icon.tsx               # Icono para iOS/home screen (mismo diseño, 180x180)
 │
 ├── api/auth/[...nextauth]/
 │   └── route.ts                # Handler de NextAuth (GET/POST)
